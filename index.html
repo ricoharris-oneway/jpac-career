@@ -87,7 +87,7 @@ input,textarea,select{width:100%;background:#0b1121;color:var(--text);border:1px
   <div class="card"><div class="section-head">Level Progress</div><div class="row space"><strong id="levelTitle">Rising Creator</strong><span id="levelSmall" class="tiny muted">Level 1</span></div><div class="tiny" id="levelXP" style="margin:8px 0;color:#ffca43">0 / 100 XP</div><div class="bar"><div class="fill" id="levelFill"></div></div></div>
   <div class="card admin-only"><div class="section-head">Student Directory</div><input id="studentSearch" placeholder="Search students" style="margin-bottom:10px"><div id="studentList"></div></div>
   <div class="card"><div class="section-head">Session</div><div class="stack"><span class="pill" id="modeBadge">Student View</span><button id="switchLoginBtn" class="secondary">Switch User / Login</button><button id="adminGate" class="secondary admin-entry">Admin Mode</button><button id="logoutBtn" class="danger">Logout</button></div></div>
-  <div class="card"><div class="section-head">Google Sheets Sync</div><div class="stack"><label class="tiny muted">Apps Script Web App URL</label><input id="sheetWebAppUrl" placeholder="Paste /exec Web App URL"><button id="saveSyncUrlBtn" class="secondary">Save Sync URL</button><button id="pullSheetBtn" class="gold">Pull Subscription + Progress</button><div id="syncStatus" class="sync-status tiny">Paste your Apps Script Web App URL, then pull subscription, Wix Programs, and JPAC LAB progress by student email.</div><div class="sync-mini tiny"><div class="mini"><strong id="syncStudentCount">0</strong><br><span class="muted">Sheet Students</span></div><div class="mini"><strong id="syncActivityCount">0</strong><br><span class="muted">Sheet Activities</span></div></div></div></div>
+  <div class="card admin-only"><div class="section-head">Wix Programs + Google Sync</div><div class="stack"><label class="tiny muted">Apps Script Web App URL</label><input id="sheetWebAppUrl" placeholder="Paste /exec Web App URL"><button id="saveSyncUrlBtn" class="secondary">Save Sync URL</button><button id="pullSheetBtn" class="gold">Pull Wix Programs Progress</button><div id="syncStatus" class="sync-status tiny">Paste your Apps Script Web App URL, then pull subscription, Wix Programs, and JPAC LAB progress by student email.</div><div class="sync-mini tiny"><div class="mini"><strong id="syncStudentCount">0</strong><br><span class="muted">Sheet Students</span></div><div class="mini"><strong id="syncActivityCount">0</strong><br><span class="muted">Sheet Activities</span></div></div></div></div>
 </aside>
 <main class="main">
   <section class="headline">
@@ -111,6 +111,16 @@ input,textarea,select{width:100%;background:#0b1121;color:var(--text);border:1px
   <div class="card"><div class="section-head">Inspector</div><strong id="detailTitle">Select a milestone</strong><div id="detailDesc" class="muted tiny" style="line-height:1.5;margin-top:8px">Click a milestone to review details, XP, due date, evidence, notes, badge, and reward rules.</div><div id="detailMeta" class="tiny muted" style="margin-top:10px;line-height:1.5"></div></div>
   <div class="card admin-only"><div class="section-head">Admin Console</div><div class="stack"><label class="tiny muted">Manual XP</label><input id="manualXP" type="number" value="25"><button id="awardXPBtn" class="primary">Award XP</button><button id="completeBtn" class="success">Complete Selected Milestone</button><button id="incompleteBtn" class="secondary">Reopen Selected Milestone</button><button id="issueCertBtn" class="gold">Issue Next Certificate</button><label class="tiny muted">Admin Notes</label><textarea id="adminNotes" placeholder="Student support notes"></textarea><button id="saveNotesBtn" class="gold">Save Notes</button></div></div>
   <div class="card admin-only"><div class="section-head">Add Student</div><div class="stack"><input id="newName" placeholder="Student name"><input id="newEmail" placeholder="Student email"><select id="newPath"></select><button id="addStudentBtn" class="primary">Add Student</button></div></div>
+  <div class="card admin-only"><div class="section-head">Wix Programs + Google Sync</div>
+    <div class="stack">
+      <div class="helper">Paste the Google Apps Script Web App URL ending in <strong>/exec</strong>. This imports Wix Programs completions, JPAC LAB activities, XP, and milestone verification by student email.</div>
+      <label class="tiny muted">Apps Script Web App URL</label>
+      <input id="adminSheetWebAppUrl" placeholder="Paste /exec Web App URL">
+      <button id="adminSaveSyncUrlBtn" class="secondary">Save Sync URL</button>
+      <button id="adminPullSheetBtn" class="gold">Pull Wix Programs Progress</button>
+      <div id="adminSyncStatus" class="sync-status tiny">Ready for Wix Programs → Google Sheets → Career OS sync.</div>
+    </div>
+  </div>
   <div class="card"><div class="section-head">Engagement Tracker</div><div class="stack tiny"><div class="row space"><span>Login Count</span><strong id="loginCount">0</strong></div><div class="row space"><span>Activities</span><strong id="activityCount">0</strong></div><div class="row space"><span>Mini Game XP Today</span><strong id="gameCap">0 / 50</strong></div><div class="row space"><span>Risk Signal</span><strong id="riskSignal" class="risk-green">Green</strong></div></div></div>
 </aside>
 </div>
@@ -162,9 +172,9 @@ const students=[
 {id:'s2',name:'Maya Carter',email:'maya@jpacdemo.org',program:'Dance',subscription:'Silver',assignedPathId:'dance',xpExtra:0,createdAt:now(),updatedAt:now(),lastLogin:daysAgo(3),loginCount:2,adminNotes:'Needs encouragement with consistent practice.',activities:[],milestones:{dance_m1:{complete:true,completedAt:now(),comment:''}},badges:['first-step'],rewards:[],certificates:[]},
 {id:'s3',name:'Avery Brooks',email:'avery@jpacdemo.org',program:'Film',subscription:'Platinum',assignedPathId:'film',xpExtra:0,createdAt:now(),updatedAt:now(),lastLogin:daysAgo(12),loginCount:1,adminNotes:'Great portfolio potential. Follow up this week.',activities:[],milestones:{},badges:[],rewards:[],certificates:[]}
 ];
-return{version:9,settings:{adminPasscode:'JPAC2026',sheetWebAppUrl:'',lastSheetSync:''},paths,students,progressLog:[],adminLog:[]}}
+return{version:10,settings:{adminPasscode:'JPAC2026',sheetWebAppUrl:'',lastSheetSync:''},paths,students,progressLog:[],adminLog:[]}}
 function now(){return new Date().toISOString()}function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString()}
-function data(){let d=localStorage.getItem(STORAGE);if(!d){d=seed();save(d);return d}try{return migrate(JSON.parse(d))}catch(e){const s=seed();save(s);return s}}function migrate(d){d.settings=d.settings||{};const freshCheck=seed();if(!d.version||d.version<9||!(d.paths||[]).length||(d.paths||[]).length<20){d.paths=freshCheck.paths;d.version=9;(d.students||[]).forEach(s=>{if(!freshCheck.paths.some(p=>p.id===s.assignedPathId))s.assignedPathId=guessPathFromText((s.program||'')+' '+(s.assignedPathId||''));});}if(!d.settings.adminPasscode)d.settings.adminPasscode='JPAC2026';if(!('sheetWebAppUrl' in d.settings))d.settings.sheetWebAppUrl='';if(!('lastSheetSync' in d.settings))d.settings.lastSheetSync='';d.progressLog=d.progressLog||[];d.adminLog=d.adminLog||[];(d.students||[]).forEach(s=>{s.activities=s.activities||[];s.badges=s.badges||[];s.rewards=s.rewards||[];s.certificates=s.certificates||[];s.milestones=s.milestones||{};s.labSyncXP=Number(s.labSyncXP||0);s.labSyncActivities=s.labSyncActivities||[];});return d}function save(d){d=migrate(d);d.updatedAt=now();localStorage.setItem(STORAGE,JSON.stringify(d))}
+function data(){let d=localStorage.getItem(STORAGE);if(!d){d=seed();save(d);return d}try{return migrate(JSON.parse(d))}catch(e){const s=seed();save(s);return s}}function migrate(d){d.settings=d.settings||{};const freshCheck=seed();if(!d.version||d.version<10||!(d.paths||[]).length||(d.paths||[]).length<20){d.paths=freshCheck.paths;d.version=10;(d.students||[]).forEach(s=>{if(!freshCheck.paths.some(p=>p.id===s.assignedPathId))s.assignedPathId=guessPathFromText((s.program||'')+' '+(s.assignedPathId||''));});}if(!d.settings.adminPasscode)d.settings.adminPasscode='JPAC2026';if(!('sheetWebAppUrl' in d.settings))d.settings.sheetWebAppUrl='';if(!('lastSheetSync' in d.settings))d.settings.lastSheetSync='';d.progressLog=d.progressLog||[];d.adminLog=d.adminLog||[];(d.students||[]).forEach(s=>{s.activities=s.activities||[];s.badges=s.badges||[];s.rewards=s.rewards||[];s.certificates=s.certificates||[];s.milestones=s.milestones||{};s.labSyncXP=Number(s.labSyncXP||0);s.labSyncActivities=s.labSyncActivities||[];});return d}function save(d){d=migrate(d);d.updatedAt=now();localStorage.setItem(STORAGE,JSON.stringify(d))}
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('toasts').appendChild(t);setTimeout(()=>t.remove(),3200)}
 function currentStudent(){return data().students.find(s=>s.id===state.studentId)||null}function currentPath(){const d=data();const stu=currentStudent();return d.paths.find(p=>p.id===(state.pathId||stu?.assignedPathId))||d.paths[0]}function status(stu,id){return stu?.milestones?.[id]||{complete:false,comment:''}}
 function compute(stu=currentStudent(),path=currentPath()){if(!stu||!path)return{percent:0,xp:0,level:1,next:100,complete:0,total:0,badges:0,rewards:0,certificates:0,weekly:0,risk:'Green',last:'Never',gameToday:0};const complete=path.milestones.filter(m=>status(stu,m.id).complete).length;const milestoneXP=path.milestones.reduce((a,m)=>a+(status(stu,m.id).complete?m.xp+XP_RULES.milestone:0),0);const activityXP=(stu.activities||[]).reduce((a,x)=>a+(+x.xp||0),0);const badgeXP=(stu.badges||[]).length*XP_RULES.badge;const xp=milestoneXP+activityXP+badgeXP+(+stu.xpExtra||0)+(+stu.labSyncXP||0);const percent=Math.round((complete/Math.max(1,path.milestones.length))*100);const level=Math.max(1,Math.floor(xp/150)+1);const next=level*150;const since=Math.floor((Date.now()-new Date(stu.lastLogin||stu.updatedAt||now()).getTime())/86400000);const risk=since>14?'Red':since>7?'Yellow':'Green';const weekCut=Date.now()-7*86400000;const weekly=(stu.activities||[]).filter(a=>new Date(a.date).getTime()>weekCut).reduce((a,x)=>a+(+x.xp||0),0);const day=new Date().toDateString();const gameToday=(stu.activities||[]).filter(a=>a.type==='game'&&new Date(a.date).toDateString()===day).reduce((a,x)=>a+(+x.xp||0),0);return{percent,xp,level,next,complete,total:path.milestones.length,badges:(stu.badges||[]).length,rewards:(stu.rewards||[]).length,certificates:(stu.certificates||[]).length,weekly,risk,last:since===0?'Today':since+'d ago',gameToday}}
@@ -370,7 +380,7 @@ function guessPathFromText(text){
   return'recording_artist';
 }
 
-function bind(){els.studentModeBtn.onclick=()=>{els.studentModeBtn.classList.add('active');els.adminModeBtn.classList.remove('active');els.studentLogin.classList.remove('hidden');els.adminLogin.classList.add('hidden')};els.adminModeBtn.onclick=()=>{els.adminModeBtn.classList.add('active');els.studentModeBtn.classList.remove('active');els.adminLogin.classList.remove('hidden');els.studentLogin.classList.add('hidden')};els.studentLoginBtn.onclick=loginStudent;els.adminLoginBtn.onclick=loginAdmin;if(els.switchLoginBtn)els.switchLoginBtn.onclick=()=>{localStorage.removeItem(SESSION);state={mode:'student',studentId:null,pathId:null,selectedMilestone:null,tab:'dashboard'};els.loginOverlay.classList.remove('hidden');els.studentModeBtn.click();render()};els.adminGate.onclick=()=>{els.loginOverlay.classList.remove('hidden');els.adminModeBtn.click()};els.logoutBtn.onclick=()=>{localStorage.removeItem(SESSION);state={mode:'student',studentId:null,pathId:null,selectedMilestone:null,tab:'dashboard'};els.loginOverlay.classList.remove('hidden');render()};els.studentSearch.oninput=render;document.querySelectorAll('.xp-action').forEach(b=>b.onclick=()=>addActivity(b.dataset.type,b.textContent.replace(/\s*\(.*/,''),XP_RULES[b.dataset.type]||0));els.completeBtn.onclick=()=>completeMilestone(true);els.incompleteBtn.onclick=()=>completeMilestone(false);if(els.issueCertBtn)els.issueCertBtn.onclick=issueNextCertificate;els.awardXPBtn.onclick=awardManualXP;els.saveNotesBtn.onclick=saveNotes;els.addStudentBtn.onclick=addStudent;els.nextStepBtn.onclick=()=>{const p=currentPath(),s=currentStudent();const next=p?.milestones.find(m=>!status(s,m.id).complete);if(next){state.selectedMilestone=next.id;toast('Next step: '+next.title);render()}else toast('Path complete. Review rewards and export record.')};els.exportMasterBtn.onclick=exportMaster;els.exportProgressBtn.onclick=exportProgress;els.exportAdminBtn.onclick=exportAdmin;els.exportStudentBtn.onclick=exportStudent;els.exportJsonBtn.onclick=()=>download('jpac-career-os-backup.json',JSON.stringify(data(),null,2),'application/json');if(els.saveSyncUrlBtn)els.saveSyncUrlBtn.onclick=()=>{const d=data();d.settings.sheetWebAppUrl=(els.sheetWebAppUrl.value||'').trim();save(d);setSyncStatus('Sync URL saved. Use Pull JPAC LAB Progress to import records.','good');toast('Google Sheets sync URL saved.')};if(els.pullSheetBtn)els.pullSheetBtn.onclick=pullSheetProgress;if(els.pullSheetFooterBtn)els.pullSheetFooterBtn.onclick=pullSheetProgress;$('careerQuiz').onclick=()=>toast('Career Quiz placeholder: connect this to path recommendation questions.');$('tabs').onclick=e=>{if(e.target.tagName==='BUTTON'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');if(e.target.dataset.tab==='games')showGames();else if(e.target.dataset.tab==='badges')showBadges();else if(e.target.dataset.tab==='rewards')showRewards();else if(e.target.dataset.tab==='certificates')showCertificates();else render()}}}
+function bind(){els.studentModeBtn.onclick=()=>{els.studentModeBtn.classList.add('active');els.adminModeBtn.classList.remove('active');els.studentLogin.classList.remove('hidden');els.adminLogin.classList.add('hidden')};els.adminModeBtn.onclick=()=>{els.adminModeBtn.classList.add('active');els.studentModeBtn.classList.remove('active');els.adminLogin.classList.remove('hidden');els.studentLogin.classList.add('hidden')};els.studentLoginBtn.onclick=loginStudent;els.adminLoginBtn.onclick=loginAdmin;if(els.switchLoginBtn)els.switchLoginBtn.onclick=()=>{localStorage.removeItem(SESSION);state={mode:'student',studentId:null,pathId:null,selectedMilestone:null,tab:'dashboard'};els.loginOverlay.classList.remove('hidden');els.studentModeBtn.click();render()};els.adminGate.onclick=()=>{els.loginOverlay.classList.remove('hidden');els.adminModeBtn.click()};els.logoutBtn.onclick=()=>{localStorage.removeItem(SESSION);state={mode:'student',studentId:null,pathId:null,selectedMilestone:null,tab:'dashboard'};els.loginOverlay.classList.remove('hidden');render()};els.studentSearch.oninput=render;document.querySelectorAll('.xp-action').forEach(b=>b.onclick=()=>addActivity(b.dataset.type,b.textContent.replace(/\s*\(.*/,''),XP_RULES[b.dataset.type]||0));els.completeBtn.onclick=()=>completeMilestone(true);els.incompleteBtn.onclick=()=>completeMilestone(false);if(els.issueCertBtn)els.issueCertBtn.onclick=issueNextCertificate;els.awardXPBtn.onclick=awardManualXP;els.saveNotesBtn.onclick=saveNotes;els.addStudentBtn.onclick=addStudent;els.nextStepBtn.onclick=()=>{const p=currentPath(),s=currentStudent();const next=p?.milestones.find(m=>!status(s,m.id).complete);if(next){state.selectedMilestone=next.id;toast('Next step: '+next.title);render()}else toast('Path complete. Review rewards and export record.')};els.exportMasterBtn.onclick=exportMaster;els.exportProgressBtn.onclick=exportProgress;els.exportAdminBtn.onclick=exportAdmin;els.exportStudentBtn.onclick=exportStudent;els.exportJsonBtn.onclick=()=>download('jpac-career-os-backup.json',JSON.stringify(data(),null,2),'application/json');if(els.saveSyncUrlBtn)els.saveSyncUrlBtn.onclick=()=>{const d=data();d.settings.sheetWebAppUrl=(els.sheetWebAppUrl.value||'').trim();save(d);setSyncStatus('Sync URL saved. Use Pull Wix Programs Progress to import records.','good');if(document.getElementById('adminSyncStatus')){document.getElementById('adminSyncStatus').textContent='Sync URL saved. Use Pull Wix Programs Progress to import records.';document.getElementById('adminSyncStatus').className='sync-status tiny good';}toast('Google Sheets sync URL saved.')};if(els.pullSheetBtn)els.pullSheetBtn.onclick=pullSheetProgress;if(els.pullSheetFooterBtn)els.pullSheetFooterBtn.onclick=pullSheetProgress;$('careerQuiz').onclick=()=>toast('Career Quiz placeholder: connect this to path recommendation questions.');$('tabs').onclick=e=>{if(e.target.tagName==='BUTTON'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');if(e.target.dataset.tab==='games')showGames();else if(e.target.dataset.tab==='badges')showBadges();else if(e.target.dataset.tab==='rewards')showRewards();else if(e.target.dataset.tab==='certificates')showCertificates();else render()}}}
 
 function certificateHtml(stu,path,cert){const issued=new Date(cert.issuedAt||now()).toLocaleDateString();return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${cert.title} - ${stu.name}</title><style>body{margin:0;font-family:Georgia,serif;background:#090d1d;color:#fff;display:grid;place-items:center;min-height:100vh}.cert{width:1000px;max-width:92vw;padding:48px;border:4px solid #ffbf35;border-radius:26px;background:radial-gradient(circle at 10% 0%,rgba(255,191,53,.25),transparent 25%),linear-gradient(180deg,#111936,#070a14);text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.55)}.seal{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;margin:0 auto 22px;background:linear-gradient(135deg,#ffcd4c,#ff9e10);color:#211400;font-size:46px;font-weight:900}.small{letter-spacing:.28em;text-transform:uppercase;color:#ffcf57}.title{font-size:54px;color:#ffcf57;margin:18px 0 8px}.name{font-size:46px;margin:18px 0;color:#fff}.line{height:1px;background:linear-gradient(90deg,transparent,#ffbf35,transparent);margin:28px 0}.body{font-size:22px;line-height:1.55;color:#e7ecff}.foot{display:flex;justify-content:space-between;margin-top:46px;text-align:left;color:#d8defb}.sig{border-top:1px solid rgba(255,191,53,.7);padding-top:8px;min-width:260px}</style></head><body><div class="cert"><div class="seal">JPAC</div><div class="small">J. Moné's Performing Arts Center</div><div class="title">${cert.title}</div><div class="body">This certificate is proudly presented to</div><div class="name">${stu.name}</div><div class="line"></div><div class="body">for successfully completing <strong>${cert.subtitle}</strong><br>in the <strong>${path.name}</strong> career pathway.</div><div class="foot"><div><strong>Date Issued</strong><br>${issued}</div><div class="sig"><strong>JPAC Program Director</strong><br>Official Digital Certificate</div></div></div><script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`}
 function downloadCertificate(certIdToDownload){const stu=currentStudent(),path=currentPath();const cert=(stu?.certificates||[]).find(c=>c.id===certIdToDownload);if(!stu||!path||!cert){toast('Certificate not found.');return}download(`jpac-certificate-${stu.name.replace(/\s+/g,'-').toLowerCase()}-${cert.id}.html`,certificateHtml(stu,path,cert),'text/html');toast('Certificate downloaded. Open the HTML file to print or save as PDF.')}
@@ -409,6 +419,65 @@ function autoLoginFromWixParams(){
 }
 
 bind();if(!autoLoginFromWixParams())restoreSession();else render();
+</script>
+
+<script>
+(function(){
+  function adminSyncInit(){
+    const urlInput=document.getElementById('adminSheetWebAppUrl');
+    const saveBtn=document.getElementById('adminSaveSyncUrlBtn');
+    const pullBtn=document.getElementById('adminPullSheetBtn');
+    const status=document.getElementById('adminSyncStatus');
+    if(!urlInput||!saveBtn||!pullBtn)return;
+    try{
+      const d=data();
+      urlInput.value=(d.settings&&d.settings.sheetWebAppUrl)||'';
+      if(status && urlInput.value){
+        status.textContent='Saved sync URL detected. Ready to pull Wix Programs progress.';
+        status.className='sync-status tiny good';
+      }
+    }catch(e){}
+    saveBtn.onclick=function(){
+      try{
+        const d=data();
+        d.settings=d.settings||{};
+        d.settings.sheetWebAppUrl=(urlInput.value||'').trim();
+        save(d);
+        if(document.getElementById('sheetWebAppUrl')) document.getElementById('sheetWebAppUrl').value=d.settings.sheetWebAppUrl;
+        if(status){
+          status.textContent='Sync URL saved. Use Pull Wix Programs Progress to import records.';
+          status.className='sync-status tiny good';
+        }
+        toast('Wix Programs sync URL saved.');
+      }catch(err){
+        if(status){
+          status.textContent='Save failed: '+err.message;
+          status.className='sync-status tiny bad';
+        }
+      }
+    };
+    pullBtn.onclick=function(){
+      if(document.getElementById('sheetWebAppUrl')) document.getElementById('sheetWebAppUrl').value=(urlInput.value||'').trim();
+      if(status){
+        status.textContent='Pulling Wix Programs progress from Google Sheets...';
+        status.className='sync-status tiny warn';
+      }
+      Promise.resolve(pullSheetProgress()).then(function(){
+        if(status){
+          status.textContent='Pull complete. Review student XP, activities, and unlocked milestones.';
+          status.className='sync-status tiny good';
+        }
+      }).catch(function(err){
+        if(status){
+          status.textContent='Pull failed: '+err.message;
+          status.className='sync-status tiny bad';
+        }
+      });
+    };
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', adminSyncInit);
+  else adminSyncInit();
+})();
 </script>
 
 <!-- ARIA VIRTUAL INSTRUCTOR ADDED - SAFE OUTSIDE MAIN APP SCRIPT -->
